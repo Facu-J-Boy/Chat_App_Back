@@ -8,9 +8,9 @@ import {
   PrimaryKey,
   Table,
 } from 'sequelize-typescript';
-import Message from './Message.model';
+import Message from './message.model';
 import User from './user.model';
-import UserChat from './UserChat.model';
+import UserChat from './userChat.model';
 
 @Table({ tableName: 'chats', timestamps: false })
 class Chat extends Model {

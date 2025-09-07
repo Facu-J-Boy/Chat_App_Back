@@ -2,6 +2,12 @@ import 'reflect-metadata';
 import { Sequelize } from 'sequelize-typescript';
 import { Dialect } from 'sequelize';
 import Config from './config';
+import {
+  ChatModel,
+  MessageModel,
+  UserChatModel,
+  UserModel,
+} from './models';
 // import {
 
 // } from './models';
@@ -17,7 +23,7 @@ const commonConfig = {
   dialect: dialect,
   logging: false,
   timezone: '-05:00',
-  models: [],
+  models: [UserModel, MessageModel, ChatModel, UserChatModel],
 };
 
 const dbConfig = dev
