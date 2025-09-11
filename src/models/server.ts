@@ -5,6 +5,8 @@ import http from 'http';
 import { ApiPaths } from '../routes';
 import https from 'https';
 import morgan from 'morgan';
+import cors from 'cors';
+import { optionCors } from '../config/corsConfig';
 
 class Server {
   private app: Application;
@@ -41,6 +43,7 @@ class Server {
   }
 
   async middleware() {
+    this.app.use(cors(optionCors));
     this.app.use(express.json());
     this.app.use(morgan('dev'));
   }

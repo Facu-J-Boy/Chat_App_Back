@@ -1,10 +1,15 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middlewares/authMiddleware';
 import { AuthService } from '../services';
 
 const router = Router();
 
-const { saludo } = AuthService;
+const { signup, signIn, singleUser } = AuthService;
 
-router.get('/saludo', saludo);
+router.post('/signup', signup);
+
+router.post('/signin', signIn);
+
+router.get('/me', authMiddleware, singleUser);
 
 module.exports = router;

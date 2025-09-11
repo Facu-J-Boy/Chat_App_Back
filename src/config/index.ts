@@ -14,6 +14,9 @@ const Config = {
   nameDB: process.env.NAME_DB || '',
   PasswordDB: process.env.PASSWORD_DB || '',
   urlDB: process.env.URL_DB || '',
+  //JWT
+  jwtSecret: process.env.JWT_SECRET || 'default_secret',
+  jwtExpires: process.env.JWT_EXPIRES_IN,
   //Urls
   urlFront: process.env.URL_FRONT || '*',
   urlBack: process.env.URL_BACK,
