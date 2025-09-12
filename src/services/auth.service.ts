@@ -42,7 +42,10 @@ const signup = async (req: Request, res: Response) => {
 const signIn = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email },
+      attributes: { exclude: ['password'] }, //  nunca devolvemos la contraseña
+    });
     if (user) {
       //Comparamos la contraseña
       const validPassword = await bcrypt.compare(
