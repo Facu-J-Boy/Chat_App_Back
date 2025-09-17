@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../models/user.model';
-import { generateToken } from '../utils/jwt';
+import { generateTokens, verifyToken } from '../utils/jwt';
 import bcrypt from 'bcryptjs';
 
 const signup = async (req: Request, res: Response) => {
@@ -20,11 +20,12 @@ const signup = async (req: Request, res: Response) => {
       password: hashedPassword,
     });
 
-    const token = generateToken(user.id);
+    const { accessToken, refreshToken } = generateTokens(user.id);
 
     return res.status(201).json({
       message: 'Usuario registrado',
-      token,
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         name: user.name,
@@ -44,7 +45,6 @@ const signIn = async (req: Request, res: Response) => {
   try {
     const user = await User.findOne({
       where: { email },
-      attributes: { exclude: ['password'] }, //  nunca devolvemos la contraseña
     });
     if (user) {
       //Comparamos la contraseña
@@ -55,12 +55,20 @@ const signIn = async (req: Request, res: Response) => {
       if (!validPassword) {
         res.status(400).json({ message: 'Invalid password' });
       }
-      const token = generateToken(user.id);
+      const { accessToken, refreshToken } = generateTokens(user.id);
+
+      const signInUser = await User.findOne({
+        where: { email },
+        attributes: {
+          exclude: ['password'],
+        },
+      });
 
       return res.json({
         message: `Welcome ${user.name}`,
-        user,
-        token,
+        user: signInUser,
+        accessToken,
+        refreshToken,
       });
     } else {
       res.status(400).json({ message: 'User not found' });
@@ -92,4 +100,24 @@ const singleUser = async (req: Request, res: Response) => {
   }
 };
 
-export default { signup, signIn, singleUser };
+const refresh = (req: Request, res: Response) => {
+  const { token } = req.body;
+  if (!token)
+    return res
+      .status(401)
+      .json({ message: 'Refresh token requerido' });
+
+  try {
+    const decoded = verifyToken(token);
+    const { accessToken, refreshToken } = generateTokens(
+      decoded.userId
+    );
+    res.json({ accessToken, refreshToken });
+  } catch {
+    return res
+      .status(403)
+      .json({ message: 'Refresh token inválido' });
+  }
+};
+
+export default { signup, signIn, singleUser, refresh };

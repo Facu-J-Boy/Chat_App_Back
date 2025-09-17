@@ -16,7 +16,8 @@ const Config = {
   urlDB: process.env.URL_DB || '',
   //JWT
   jwtSecret: process.env.JWT_SECRET || 'default_secret',
-  jwtExpires: process.env.JWT_EXPIRES_IN,
+  jwtRefreshSecret:
+    process.env.JWT_REFRESH_SECRET || 'jwt default secret',
   //Urls
   urlFront: process.env.URL_FRONT || '*',
   urlBack: process.env.URL_BACK,
