@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middlewares/authMiddleware';
-import { AuthService } from '../services';
+import { AuthController } from '../controller';
 
 const router = Router();
 
-const { signup, signIn, singleUser, refresh } = AuthService;
+const { signup, signIn, singleUser, refresh } = AuthController;
 
 router.post('/signup', signup);
 
