@@ -47,6 +47,10 @@ export const signUpUser = async (data: SignUpDTO) => {
 
 export const signInUser = async (data: SignInDTO) => {
   const { email, password } = data;
+
+  if (!email || !password) {
+    throw new Error('Faltan datos');
+  }
   const user = await UserModel.findOne({
     where: { email },
   });

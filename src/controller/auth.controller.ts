@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
-import User from '../models/user.model';
 import { generateTokens, verifyToken } from '../utils/jwt';
-import bcrypt from 'bcryptjs';
 import * as userService from '../services/user.service';
 
 const signup = async (req: Request, res: Response) => {
