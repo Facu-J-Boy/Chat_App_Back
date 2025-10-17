@@ -7,11 +7,16 @@ import https from 'https';
 import morgan from 'morgan';
 import cors from 'cors';
 import { optionCors } from '../config/corsConfig';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@as-integrations/express4';
+import { typeDefs } from '../graphql/typeDefs';
+import { resolvers } from '../graphql/resolvers';
 
 class Server {
   private app: Application;
   private port: string | number;
   private server: http.Server;
+  private apolloServer!: ApolloServer;
 
   constructor() {
     this.app = express();
@@ -21,6 +26,7 @@ class Server {
     this.dbConnection();
     this.middleware();
     this.routes(); // Añadir la configuración de sockets
+    this.graphql();
   }
 
   async dbConnection(retries = 5, delay = 5000) {
@@ -53,6 +59,22 @@ class Server {
       const route = await import(`../router/${router}`);
       this.app.use(`/api${url}`, route.default);
     }
+  }
+
+  async graphql() {
+    this.apolloServer = new ApolloServer({
+      typeDefs,
+      resolvers,
+    });
+
+    await this.apolloServer.start();
+    this.app.use(
+      '/graphql',
+      express.json(),
+      expressMiddleware(this.apolloServer)
+    );
+
+    console.log('🚀 GraphQL endpoint listo en /graphql');
   }
 
   async listen() {
