@@ -11,6 +11,8 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express4';
 import { typeDefs } from '../graphql/typeDefs';
 import { resolvers } from '../graphql/resolvers';
+import User from './user.model';
+import jwt from 'jsonwebtoken';
 
 class Server {
   private app: Application;
@@ -71,7 +73,36 @@ class Server {
     this.app.use(
       '/graphql',
       express.json(),
-      expressMiddleware(this.apolloServer)
+      expressMiddleware(this.apolloServer, {
+        context: async ({ req }) => {
+          let authHeader =
+            req.headers.authorization || req.headers.Authorization;
+
+          if (Array.isArray(authHeader)) {
+            authHeader = authHeader[0];
+          }
+
+          const token =
+            typeof authHeader === 'string' &&
+            authHeader.startsWith('Bearer ')
+              ? authHeader.split(' ')[1]
+              : null;
+
+          if (!token) return { user: null };
+
+          try {
+            const decoded = jwt.verify(token, Config.jwtSecret) as {
+              userId: number;
+            };
+            const user = await User.findByPk(decoded.userId);
+            if (!user) return { user: null };
+
+            return { user };
+          } catch {
+            return { user: null };
+          }
+        },
+      })
     );
 
     console.log('🚀 GraphQL endpoint listo en /graphql');
