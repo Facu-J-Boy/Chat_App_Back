@@ -1,6 +1,7 @@
 import User from '../models/user.model'; // ajustá el path a tu modelo real
+import { protectResolvers } from './wrapResolvers';
 
-export const resolvers = {
+export const rawResolvers = {
   Query: {
     users: async () => await User.findAll(),
     user: async (_: any, { id }: { id: number }) =>
@@ -16,3 +17,5 @@ export const resolvers = {
     },
   },
 };
+
+export const resolvers = protectResolvers(rawResolvers);
