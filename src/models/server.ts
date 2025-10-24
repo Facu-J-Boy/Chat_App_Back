@@ -13,6 +13,11 @@ import { typeDefs } from '../graphql/typeDefs';
 import { resolvers } from '../graphql/resolvers';
 import User from './user.model';
 import jwt from 'jsonwebtoken';
+// import { useServer } from
+import { WebSocketServer } from 'ws';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+// import { useServer } from '../types/graphql-ws';
+import { useServer } from 'graphql-ws/lib/use/ws';
 
 class Server {
   private app: Application;
@@ -103,6 +108,39 @@ class Server {
           }
         },
       })
+    );
+
+    const schema = makeExecutableSchema({
+      typeDefs,
+      resolvers,
+    });
+
+    const wsServer = new WebSocketServer({
+      server: this.server,
+      path: '/graphql',
+    });
+
+    useServer(
+      {
+        schema,
+        context: async (ctx: unknown) => {
+          const context = ctx as any;
+          const token =
+            context.connectionParams?.Authorization?.split(' ')[1];
+
+          if (!token) return { user: null };
+          try {
+            const decoded = jwt.verify(token, Config.jwtSecret) as {
+              userId: number;
+            };
+            const user = await User.findByPk(decoded.userId);
+            return { user };
+          } catch {
+            return { user: null };
+          }
+        },
+      },
+      wsServer
     );
 
     console.log('🚀 GraphQL endpoint listo en /graphql');

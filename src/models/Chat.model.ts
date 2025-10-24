@@ -33,6 +33,9 @@ class Chat extends Model {
   messages!: Message[];
 
   @BelongsToMany(() => User, () => UserChat)
+  currentUser!: User[];
+
+  @BelongsToMany(() => User, () => UserChat)
   users!: User[];
 }
 
