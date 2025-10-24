@@ -13,6 +13,14 @@ export const typeDefs = `#graphql
     messages: [Message]
   }
 
+  type ChatItem {
+    id: Int!
+    name: String
+    isGroup: Boolean!
+    users: [User]
+    lastMessage: Message
+  }
+
   type Message {
     id: Int!
     text: String!
@@ -24,13 +32,13 @@ export const typeDefs = `#graphql
   type Query {
     users: [User!]!
     user(id: Int!): User
-    getChats: [Chat!]!
+    getChats: [ChatItem!]!
     getMessages(chatId: Int!): [Message!]!
   }
 
   type Mutation {
     createUser(name: String!, email: String!): User!
-    createChat(userIds: [Int!]!, name: String, isGroup: Boolean): Chat
+    createChat(userIds: [Int!]!, name: String): Chat
     sendMessage(chatId: Int!, text: String!): Message!
   }
 
