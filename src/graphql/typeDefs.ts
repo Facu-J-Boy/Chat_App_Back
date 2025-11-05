@@ -3,6 +3,7 @@ export const typeDefs = `#graphql
     id: Int!
     name: String!
     email: String!
+    profile_image: String
   }
 
   type Chat {
@@ -32,7 +33,7 @@ export const typeDefs = `#graphql
   type Query {
     users: [User!]!
     user(id: Int!): User
-    getChats: [ChatItem!]!
+    getChats(isGroup: Boolean): [ChatItem!]!
     getMessages(chatId: Int!): [Message!]!
   }
 

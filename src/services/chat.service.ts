@@ -111,8 +111,9 @@ export const createChat = async (data: CreateChatDTO) => {
   // }
 };
 
-export const getChats = async (user: UserModel) => {
+export const getChats = async (user: UserModel, isGroup: boolean) => {
   const chats = await ChatModel.findAll({
+    where: { isGroup },
     include: [
       // Incluye solo para filtrar: asegurar que el usuario participa
       {
