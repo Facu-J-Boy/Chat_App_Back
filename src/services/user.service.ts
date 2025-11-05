@@ -1,6 +1,5 @@
 import { UserModel } from '../models';
 import bcrypt from 'bcryptjs';
-import { generateTokens } from '../utils/jwt';
 
 interface SignUpDTO {
   name: string;
@@ -30,18 +29,11 @@ export const signUpUser = async (data: SignUpDTO) => {
     password: hashedPassword,
   });
 
-  const { accessToken, refreshToken } = generateTokens(user.id);
-
   return {
-    message: 'Usuario registrado',
-    accessToken,
-    refreshToken,
-    user: {
-      id: user.id,
-      name: user.name,
-      userName: user.userName,
-      email: user.email,
-    },
+    id: user.id,
+    name: user.name,
+    userName: user.userName,
+    email: user.email,
   };
 };
 
@@ -66,7 +58,6 @@ export const signInUser = async (data: SignInDTO) => {
     if (!validPassword) {
       throw new Error('Invalid password');
     }
-    const { accessToken, refreshToken } = generateTokens(user.id);
 
     const signInUser = await UserModel.findOne({
       where: { email },
@@ -74,12 +65,7 @@ export const signInUser = async (data: SignInDTO) => {
         exclude: ['password'],
       },
     });
-    return {
-      message: `Welcome ${user.name}`,
-      accessToken,
-      refreshToken,
-      user: signInUser,
-    };
+    return signInUser;
   }
 };
 

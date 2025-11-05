@@ -13,6 +13,12 @@ export const generateTokens = (userId: number) => {
   return { accessToken, refreshToken };
 };
 
-export const verifyToken = (token: string) => {
+// Verifica el access token
+export const verifyAccessToken = (token: string) => {
+  return jwt.verify(token, jwtSecret) as { userId: number };
+};
+
+// Verifica el refresh token
+export const verifyRefreshToken = (token: string) => {
   return jwt.verify(token, jwtRefreshSecret) as { userId: number };
 };

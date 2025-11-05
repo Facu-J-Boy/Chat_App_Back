@@ -18,6 +18,8 @@ import { WebSocketServer } from 'ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 // import { useServer } from '../types/graphql-ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
+import cookieParser from 'cookie-parser';
+import { verifyAccessToken } from '../utils/jwt';
 
 class Server {
   private app: Application;
@@ -59,6 +61,7 @@ class Server {
     this.app.use(cors(optionCors));
     this.app.use(express.json());
     this.app.use(morgan('dev'));
+    this.app.use(cookieParser());
   }
 
   async routes() {
@@ -96,9 +99,7 @@ class Server {
           if (!token) return { user: null };
 
           try {
-            const decoded = jwt.verify(token, Config.jwtSecret) as {
-              userId: number;
-            };
+            const decoded = verifyAccessToken(token);
             const user = await User.findByPk(decoded.userId);
             if (!user) return { user: null };
 
@@ -130,9 +131,7 @@ class Server {
 
           if (!token) return { user: null };
           try {
-            const decoded = jwt.verify(token, Config.jwtSecret) as {
-              userId: number;
-            };
+            const decoded = verifyAccessToken(token);
             const user = await User.findByPk(decoded.userId);
             return { user };
           } catch {

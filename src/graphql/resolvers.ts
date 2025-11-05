@@ -22,10 +22,10 @@ export const rawResolvers = {
 
     getChats: async (
       _: any,
-      __: any,
+      { isGroup }: { isGroup: boolean },
       { user }: { user: UserModel }
     ) => {
-      return await getChats(user);
+      return await getChats(user, isGroup);
     },
 
     getMessages: async (_: any, { chatId }: { chatId: number }) => {

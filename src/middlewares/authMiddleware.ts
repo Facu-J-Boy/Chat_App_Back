@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import Config from '../config';
-const { jwtSecret } = Config;
+import { verifyAccessToken } from '../utils/jwt';
 
 export const authMiddleware = (
   req: Request,
@@ -9,7 +7,7 @@ export const authMiddleware = (
   next: NextFunction
 ) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = authHeader && authHeader.split(' ')[1]; // formato: "Bearer <token>"
 
   if (!token) {
     console.log('Token required');
@@ -18,16 +16,14 @@ export const authMiddleware = (
       .json({ user: null, message: 'Token required' });
   }
 
-  jwt.verify(token, jwtSecret, (err, user) => {
-    if (err) {
-      console.log('Invalid token');
-      return res
-        .status(403)
-        .json({ user: null, message: 'Invalid token' });
-    }
-
-    // @ts-ignore
-    req.user = user; // guardamos los datos decodificados
+  try {
+    const decoded = verifyAccessToken(token); // ✅ usamos tu helper
+    (req as any).user = decoded; // guardamos el usuario decodificado
     next();
-  });
+  } catch (error) {
+    console.log('Invalid or expired token:', error);
+    return res
+      .status(403)
+      .json({ user: null, message: 'Invalid or expired token' });
+  }
 };
