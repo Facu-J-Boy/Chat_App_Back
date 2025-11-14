@@ -55,35 +55,45 @@ export const createChat = async (data: CreateChatDTO) => {
   if (userIds.length < 2) {
     throw new Error('Se requieren al menos dos usuarios');
   }
-  // 🔍 Verificar si ya existe un chat entre los mismos dos usuarios (solo si no es grupo)
-  if (userIds.length === 2) {
+
+  // Definimos si es grupo o no
+  const isGroup = userIds.length > 2;
+
+  if (isGroup && !name) {
+    throw new Error('Se requiere un nombre para el grupo');
+  }
+
+  // ⚡️ Solo buscamos duplicados si NO es grupo
+  if (!isGroup) {
+    const [userA, userB] = userIds;
+
+    if (typeof userA !== 'number' || typeof userB !== 'number') {
+      throw new Error(
+        'userIds debe contener exactamente dos usuarios válidos'
+      );
+    }
+
+    // Buscar chats privados (isGroup = false) donde participe userA
     const existingChats = await ChatModel.findAll({
+      where: { isGroup: false },
       include: [
         {
           model: UserModel,
           as: 'users',
-          through: { attributes: [] }, // ignora columnas intermedias
-          where: {
-            id: { [Op.in]: userIds },
-          },
+          through: { attributes: [] },
+          where: { id: userA },
         },
       ],
     });
 
-    // Filtramos los chats que tienen exactamente esos dos usuarios
-    const existingChat = existingChats.find(
-      (chat: any) => chat.users.length === 2
-    );
-
-    if (existingChat) {
-      throw new Error('Ya existe un chat entre esos usuarios');
+    // Verificar si alguno de esos chats también tiene al userB
+    for (const chat of existingChats) {
+      const users = await chat.$get('users');
+      const userIdsInChat = users.map((u) => u.id);
+      if (userIdsInChat.includes(userB)) {
+        throw new Error('Ya existe un chat entre esos usuarios');
+      }
     }
-  }
-
-  let isGroup = false;
-
-  if (userIds.length > 2) {
-    isGroup = true;
   }
 
   const chat = await ChatModel.create({ name, isGroup });
@@ -138,7 +148,7 @@ export const getChats = async (user: UserModel, isGroup: boolean) => {
       },
     ],
     order: [
-      // 🔥 Subconsulta para ordenar por el último mensaje
+      // Subconsulta para ordenar por el último mensaje
       [
         Sequelize.literal(`(
           SELECT MAX(m.createdAt)
