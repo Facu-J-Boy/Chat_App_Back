@@ -17,6 +17,7 @@ export const typeDefs = `#graphql
   type ChatItem {
     id: Int!
     name: String
+    chat_image: String
     isGroup: Boolean!
     users: [User]
     lastMessage: Message

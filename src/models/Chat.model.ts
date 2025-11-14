@@ -22,6 +22,9 @@ class Chat extends Model {
   @Column({ type: DataType.STRING, allowNull: true })
   name?: string;
 
+  @Column({ type: DataType.STRING, allowNull: true })
+  chat_image?: string;
+
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
