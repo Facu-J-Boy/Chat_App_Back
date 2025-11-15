@@ -1,4 +1,9 @@
-import { ChatModel, MessageModel, UserModel } from '../models';
+import {
+  ChatModel,
+  MessageModel,
+  UserChatModel,
+  UserModel,
+} from '../models';
 
 interface CreateMessageDTO {
   chatId: number;
@@ -8,6 +13,14 @@ interface CreateMessageDTO {
 
 export const createMessage = async (data: CreateMessageDTO) => {
   const { chatId, senderId, text } = data;
+
+  const exist = await UserChatModel.findOne({
+    where: { userId: senderId, chatId },
+  });
+
+  if (!exist) {
+    throw new Error('No formas parte de este chat');
+  }
 
   const message = await MessageModel.create({
     chatId,
