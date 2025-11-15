@@ -1,4 +1,3 @@
-import Chat from '../models/chat.model';
 import Message from '../models/message.model';
 import User from '../models/user.model'; // ajustá el path a tu modelo real
 import { protectResolvers } from './wrapResolvers';
@@ -31,8 +30,8 @@ export const rawResolvers = {
     getMessages: async (_: any, { chatId }: { chatId: number }) => {
       return await Message.findAll({
         where: { chatId },
-        include: [User, Chat],
-        order: [['createdAt', 'ASC']],
+        include: [User],
+        order: [['createdAt', 'DESC']],
       });
     },
   },
