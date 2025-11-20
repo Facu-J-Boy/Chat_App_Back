@@ -1,23 +1,15 @@
-import Message from '../models/message.model';
-import User from '../models/user.model'; // ajustá el path a tu modelo real
 import { protectResolvers } from './wrapResolvers';
-import { PubSub } from 'graphql-subscriptions';
 import { createChat, getChats } from '../services/chat.service';
 import { createMessage } from '../services/message.service';
-import { UserModel } from '../models';
-
-interface PubSubAsyncIterator extends PubSub {
-  asyncIterator<T>(triggers: string | string[]): AsyncIterator<T>;
-}
-
-const pubsub = new PubSub() as PubSubAsyncIterator;
+import { MessageModel, UserModel } from '../models';
+import { pubsub } from './pubsub';
 
 export const rawResolvers = {
   Query: {
-    users: async () => await User.findAll(),
+    users: async () => await UserModel.findAll(),
 
     user: async (_: any, { id }: { id: number }) =>
-      await User.findByPk(id),
+      await UserModel.findByPk(id),
 
     getChats: async (
       _: any,
@@ -28,9 +20,9 @@ export const rawResolvers = {
     },
 
     getMessages: async (_: any, { chatId }: { chatId: number }) => {
-      return await Message.findAll({
+      return await MessageModel.findAll({
         where: { chatId },
-        include: [User],
+        include: [UserModel],
         order: [['createdAt', 'DESC']],
       });
     },
@@ -41,7 +33,7 @@ export const rawResolvers = {
       _: any,
       { name, email }: { name: string; email: string }
     ) => {
-      const user = await User.create({ name, email });
+      const user = await UserModel.create({ name, email });
       return user;
     },
 
@@ -58,7 +50,7 @@ export const rawResolvers = {
       { chatId, text }: any,
       { user }: any
     ) => {
-      const message = await createMessage({
+      const newMessage = await createMessage({
         chatId,
         senderId: user.id,
         text,
@@ -72,22 +64,27 @@ export const rawResolvers = {
       // const fullMessage = await Message.findByPk(message.id, {
       //   include: [User, Chat],
       // });
+      if (newMessage) {
+        await pubsub.publish(`MESSAGE_SENT_${chatId}`, {
+          messageSent: newMessage,
+        });
 
-      pubsub.publish('MESSAGE_SENT', {
-        messageSent: message,
-      });
-
-      return message;
+        return newMessage;
+      }
     },
   },
 
   Subscription: {
     messageSent: {
-      subscribe: () => pubsub.asyncIterator(['MESSAGE_SENT']),
-      resolve: (payload: any, args: { chatId: number }) => {
-        if (payload.messageSent.chatId === args.chatId)
-          return payload.messageSent;
-        return null;
+      subscribe: (_: any, { chatId }: { chatId: number }) => {
+        console.log('Subscribing to chatId', chatId);
+        return pubsub.asyncIterableIterator([
+          `MESSAGE_SENT_${chatId}`,
+        ]);
+      },
+      resolve: (payload: any) => {
+        console.log('Payload received in resolve:', payload);
+        return payload.messageSent;
       },
     },
   },

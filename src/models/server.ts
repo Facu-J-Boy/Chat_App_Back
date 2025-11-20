@@ -20,6 +20,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import cookieParser from 'cookie-parser';
 import { verifyAccessToken } from '../utils/jwt';
+import { pubsub } from '../graphql/pubsub';
 
 class Server {
   private app: Application;
@@ -103,9 +104,9 @@ class Server {
             const user = await User.findByPk(decoded.userId);
             if (!user) return { user: null };
 
-            return { user };
+            return { user, pubsub };
           } catch {
-            return { user: null };
+            return { user: null, pubsub };
           }
         },
       })
@@ -124,18 +125,23 @@ class Server {
     useServer(
       {
         schema,
-        context: async (ctx: unknown) => {
+        context: async (ctx: any) => {
           const context = ctx as any;
-          const token =
-            context.connectionParams?.Authorization?.split(' ')[1];
+          const auth =
+            context.connectionParams?.authorization ||
+            context.connectionParams?.Authorization;
 
-          if (!token) return { user: null };
+          const token = auth?.startsWith('Bearer ')
+            ? auth.split(' ')[1]
+            : null;
+
+          if (!token) return { user: null, pubsub };
           try {
             const decoded = verifyAccessToken(token);
             const user = await User.findByPk(decoded.userId);
-            return { user };
+            return { user, pubsub };
           } catch {
-            return { user: null };
+            return { user: null, pubsub };
           }
         },
       },
