@@ -45,6 +45,6 @@ export const typeDefs = `#graphql
   }
 
   type Subscription {
-    messageSent(chatId: Int!): Message!
+    messageSent: Message
   }
 `;

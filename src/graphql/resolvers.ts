@@ -2,7 +2,6 @@ import { protectResolvers } from './wrapResolvers';
 import { createChat, getChats } from '../services/chat.service';
 import { createMessage } from '../services/message.service';
 import { MessageModel, UserModel } from '../models';
-import { pubsub } from './pubsub';
 
 export const rawResolvers = {
   Query: {
@@ -48,24 +47,15 @@ export const rawResolvers = {
     sendMessage: async (
       _: any,
       { chatId, text }: any,
-      { user }: any
+      { user, pubsub }: any
     ) => {
       const newMessage = await createMessage({
         chatId,
         senderId: user.id,
         text,
       });
-      // const message = await Message.create({
-      //   text,
-      //   chatId,
-      //   senderId: user.id,
-      // });
-
-      // const fullMessage = await Message.findByPk(message.id, {
-      //   include: [User, Chat],
-      // });
       if (newMessage) {
-        await pubsub.publish(`MESSAGE_SENT_${chatId}`, {
+        await pubsub.publish('MESSAGE_SENT', {
           messageSent: newMessage,
         });
 
@@ -76,15 +66,8 @@ export const rawResolvers = {
 
   Subscription: {
     messageSent: {
-      subscribe: (_: any, { chatId }: { chatId: number }) => {
-        console.log('Subscribing to chatId', chatId);
-        return pubsub.asyncIterableIterator([
-          `MESSAGE_SENT_${chatId}`,
-        ]);
-      },
-      resolve: (payload: any) => {
-        console.log('Payload received in resolve:', payload);
-        return payload.messageSent;
+      subscribe: (_: any, __: any, { pubsub }: any) => {
+        return pubsub.asyncIterator('MESSAGE_SENT');
       },
     },
   },
