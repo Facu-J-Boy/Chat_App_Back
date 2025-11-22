@@ -66,8 +66,22 @@ export const rawResolvers = {
 
   Subscription: {
     messageSent: {
-      subscribe: (_: any, __: any, { pubsub }: any) => {
-        return pubsub.asyncIterator('MESSAGE_SENT');
+      subscribe: (_: any, __: any, { user, pubsub }: any) => {
+        const iterator = pubsub.asyncIterator('MESSAGE_SENT');
+
+        async function* filtered() {
+          for await (const event of iterator) {
+            if (
+              event.messageSent.chat.users.some(
+                (u: UserModel) => u.id === user.id
+              )
+            ) {
+              yield event;
+            }
+          }
+        }
+
+        return filtered();
       },
     },
   },

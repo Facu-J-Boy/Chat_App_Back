@@ -31,7 +31,11 @@ export const createMessage = async (data: CreateMessageDTO) => {
   const fullMessage = await MessageModel.findByPk(message.id, {
     include: [
       { model: UserModel, as: 'sender' },
-      { model: ChatModel, as: 'chat' },
+      {
+        model: ChatModel,
+        as: 'chat',
+        include: [{ model: UserModel, as: 'users' }],
+      },
     ],
   });
 
