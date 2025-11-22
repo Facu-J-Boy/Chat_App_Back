@@ -11,16 +11,13 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express4';
 import { typeDefs } from '../graphql/typeDefs';
 import { resolvers } from '../graphql/resolvers';
-import User from './user.model';
-import jwt from 'jsonwebtoken';
-// import { useServer } from
 import { WebSocketServer } from 'ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-// import { useServer } from '../types/graphql-ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import cookieParser from 'cookie-parser';
 import { verifyAccessToken } from '../utils/jwt';
 import { pubsub } from '../graphql/pubsub';
+import { UserModel } from '.';
 
 class Server {
   private app: Application;
@@ -101,8 +98,8 @@ class Server {
 
           try {
             const decoded = verifyAccessToken(token);
-            const user = await User.findByPk(decoded.userId);
-            if (!user) return { user: null };
+            const user = await UserModel.findByPk(decoded.userId);
+            if (!user) return { user: null, pubsub };
 
             return { user, pubsub };
           } catch {
@@ -122,9 +119,22 @@ class Server {
       path: '/graphql',
     });
 
+    wsServer.on('connection', (socket) => {
+      socket.on('close', (code, reason) => {
+        console.log('🔴 Cliente desconectado');
+        console.log('Código:', code);
+        console.log('Razón:', reason?.toString());
+      });
+
+      socket.on('error', (err) => {
+        console.log('⚠️ Error en socket:', err);
+      });
+    });
+
     useServer(
       {
         schema,
+
         context: async (ctx: any) => {
           const context = ctx as any;
           const auth =
@@ -138,7 +148,7 @@ class Server {
           if (!token) return { user: null, pubsub };
           try {
             const decoded = verifyAccessToken(token);
-            const user = await User.findByPk(decoded.userId);
+            const user = await UserModel.findByPk(decoded.userId);
             return { user, pubsub };
           } catch {
             return { user: null, pubsub };
