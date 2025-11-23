@@ -1,7 +1,7 @@
 import { protectResolvers } from './wrapResolvers';
 import { createChat, getChats } from '../services/chat.service';
 import { createMessage } from '../services/message.service';
-import { MessageModel, UserModel } from '../models';
+import { ChatModel, MessageModel, UserModel } from '../models';
 
 export const rawResolvers = {
   Query: {
@@ -50,6 +50,7 @@ export const rawResolvers = {
       { user, pubsub }: any
     ) => {
       const newMessage = await createMessage({
+        user,
         chatId,
         senderId: user.id,
         text,
@@ -72,7 +73,7 @@ export const rawResolvers = {
         async function* filtered() {
           for await (const event of iterator) {
             if (
-              event.messageSent.chat.users.some(
+              event.messageSent.message.chat.users.some(
                 (u: UserModel) => u.id === user.id
               )
             ) {

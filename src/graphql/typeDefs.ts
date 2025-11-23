@@ -31,6 +31,11 @@ export const typeDefs = `#graphql
     createdAt: String!
   }
 
+    type MessageSentResponse {
+    message: Message
+    chatSummary: ChatItem
+  }
+
   type Query {
     users: [User!]!
     user(id: Int!): User
@@ -41,10 +46,10 @@ export const typeDefs = `#graphql
   type Mutation {
     createUser(name: String!, email: String!): User!
     createChat(userIds: [Int!]!, name: String): Chat
-    sendMessage(chatId: Int!, text: String!): Message!
+    sendMessage(chatId: Int!, text: String!): MessageSentResponse!
   }
 
   type Subscription {
-    messageSent: Message
+    messageSent: MessageSentResponse
   }
 `;

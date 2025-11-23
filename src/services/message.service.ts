@@ -6,13 +6,23 @@ import {
 } from '../models';
 
 interface CreateMessageDTO {
+  user: UserModel;
   chatId: number;
   senderId: number;
   text: string;
 }
 
+// interface ChatItem {
+//     id: number
+//     name: string
+//     chat_image: string
+//     isGroup: boolean
+//     users: UserModel[] | undefined
+//     lastMessage: MessageModel | null
+//   }
+
 export const createMessage = async (data: CreateMessageDTO) => {
-  const { chatId, senderId, text } = data;
+  const { user, chatId, senderId, text } = data;
 
   const exist = await UserChatModel.findOne({
     where: { userId: senderId, chatId },
@@ -39,7 +49,16 @@ export const createMessage = async (data: CreateMessageDTO) => {
     ],
   });
 
-  return fullMessage;
+  return {
+    message: fullMessage,
+    chatSummary: {
+      ...fullMessage?.chat.toJSON(),
+      users: fullMessage?.chat.users.filter(
+        (u: UserModel) => u.id !== user.id
+      ),
+      lastMessage: fullMessage,
+    },
+  };
 };
 
 export default { createMessage };
