@@ -1,4 +1,11 @@
 export const typeDefs = `#graphql
+
+enum MessageStatus {
+  sent
+  delivered
+  read
+}
+
   type User {
     id: Int!
     name: String!
@@ -29,6 +36,7 @@ export const typeDefs = `#graphql
     sender: User!
     chat: Chat!
     createdAt: String!
+    status: MessageStatus!
   }
 
     type MessageSentResponse {
@@ -46,7 +54,7 @@ export const typeDefs = `#graphql
   type Mutation {
     createUser(name: String!, email: String!): User!
     createChat(userIds: [Int!]!, name: String): Chat
-    sendMessage(chatId: Int!, text: String!): MessageSentResponse!
+    sendMessage(chatId: Int!, text: String!, createdAt: String!): MessageSentResponse!
   }
 
   type Subscription {

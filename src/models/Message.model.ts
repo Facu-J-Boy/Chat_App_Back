@@ -2,6 +2,7 @@ import {
   AutoIncrement,
   BelongsTo,
   Column,
+  CreatedAt,
   DataType,
   ForeignKey,
   Model,
@@ -10,6 +11,12 @@ import {
 } from 'sequelize-typescript';
 import Chat from './chat.model';
 import User from './user.model';
+
+enum MessageStatus {
+  SENT = 'sent',
+  DELIVERED = 'delivered',
+  READ = 'read',
+}
 
 @Table({ tableName: 'messages', timestamps: true })
 class Message extends Model {
@@ -20,6 +27,16 @@ class Message extends Model {
 
   @Column({ type: DataType.TEXT, allowNull: false })
   text!: string;
+
+  @CreatedAt
+  @Column({ field: 'createdAt', type: DataType.DATE })
+  createdAt!: Date;
+  @Column({
+    type: DataType.ENUM(...Object.values(MessageStatus)),
+    allowNull: false,
+    defaultValue: MessageStatus.SENT,
+  })
+  status!: MessageStatus;
 
   @ForeignKey(() => User)
   @Column(DataType.BIGINT)

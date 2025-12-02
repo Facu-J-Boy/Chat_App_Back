@@ -46,7 +46,7 @@ export const rawResolvers = {
 
     sendMessage: async (
       _: any,
-      { chatId, text }: any,
+      { chatId, text, createdAt }: any,
       { user, pubsub }: any
     ) => {
       const newMessage = await createMessage({
@@ -54,6 +54,7 @@ export const rawResolvers = {
         chatId,
         senderId: user.id,
         text,
+        createdAt,
       });
       if (newMessage) {
         await pubsub.publish('MESSAGE_SENT', {

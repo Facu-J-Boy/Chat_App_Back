@@ -10,6 +10,7 @@ interface CreateMessageDTO {
   chatId: number;
   senderId: number;
   text: string;
+  createdAt: Date;
 }
 
 // interface ChatItem {
