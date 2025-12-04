@@ -1,6 +1,9 @@
 import { protectResolvers } from './wrapResolvers';
 import { createChat, getChats } from '../services/chat.service';
-import { createMessage } from '../services/message.service';
+import {
+  createMessage,
+  getMessageList,
+} from '../services/message.service';
 import { ChatModel, MessageModel, UserModel } from '../models';
 
 export const rawResolvers = {
@@ -19,11 +22,7 @@ export const rawResolvers = {
     },
 
     getMessages: async (_: any, { chatId }: { chatId: number }) => {
-      return await MessageModel.findAll({
-        where: { chatId },
-        include: [UserModel],
-        order: [['createdAt', 'DESC']],
-      });
+      return await getMessageList(chatId);
     },
   },
 

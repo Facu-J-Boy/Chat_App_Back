@@ -2,7 +2,6 @@ import {
   AutoIncrement,
   BelongsTo,
   Column,
-  CreatedAt,
   DataType,
   ForeignKey,
   Model,
@@ -28,9 +27,9 @@ class Message extends Model {
   @Column({ type: DataType.TEXT, allowNull: false })
   text!: string;
 
-  @CreatedAt
-  @Column({ field: 'createdAt', type: DataType.DATE })
+  @Column({ type: DataType.DATE(3), allowNull: false })
   createdAt!: Date;
+
   @Column({
     type: DataType.ENUM(...Object.values(MessageStatus)),
     allowNull: false,

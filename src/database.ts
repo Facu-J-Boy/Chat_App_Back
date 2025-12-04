@@ -45,4 +45,6 @@ const db = new Sequelize(dbConfig);
 
 db.sync({ alter: false });
 
+// db.sync({ force: true });
+
 export default db;

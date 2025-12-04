@@ -10,8 +10,16 @@ interface CreateMessageDTO {
   chatId: number;
   senderId: number;
   text: string;
-  createdAt: Date;
+  createdAt: number;
 }
+
+const serializeMessage = (msg: MessageModel) => ({
+  ...msg.toJSON(),
+  createdAt:
+    msg.createdAt instanceof Date
+      ? msg.createdAt.toISOString()
+      : msg.createdAt,
+});
 
 // interface ChatItem {
 //     id: number
@@ -23,7 +31,7 @@ interface CreateMessageDTO {
 //   }
 
 export const createMessage = async (data: CreateMessageDTO) => {
-  const { user, chatId, senderId, text } = data;
+  const { user, chatId, senderId, text, createdAt } = data;
 
   const exist = await UserChatModel.findOne({
     where: { userId: senderId, chatId },
@@ -37,6 +45,7 @@ export const createMessage = async (data: CreateMessageDTO) => {
     chatId,
     senderId,
     text,
+    createdAt,
   });
 
   const fullMessage = await MessageModel.findByPk(message.id, {
@@ -50,16 +59,26 @@ export const createMessage = async (data: CreateMessageDTO) => {
     ],
   });
 
-  return {
-    message: fullMessage,
-    chatSummary: {
-      ...fullMessage?.chat.toJSON(),
-      users: fullMessage?.chat.users.filter(
-        (u: UserModel) => u.id !== user.id
-      ),
-      lastMessage: fullMessage,
-    },
-  };
+  if (fullMessage) {
+    return {
+      message: serializeMessage(fullMessage),
+      chatSummary: {
+        ...fullMessage?.chat.toJSON(),
+        users: fullMessage?.chat.users.filter(
+          (u: UserModel) => u.id !== user.id
+        ),
+        lastMessage: serializeMessage(fullMessage),
+      },
+    };
+  }
 };
 
-export default { createMessage };
+export const getMessageList = async (chatId: number) => {
+  const messages = await MessageModel.findAll({
+    where: { chatId },
+    include: [UserModel],
+    order: [['createdAt', 'DESC']],
+  });
+
+  return messages.map((msg) => serializeMessage(msg));
+};
